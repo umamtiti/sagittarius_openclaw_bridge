@@ -1,0 +1,37 @@
+<launch>
+  <arg name="robot_name" default="sgr532"/>
+  <arg name="robot_model" default="$(arg robot_name)"/>
+  <arg name="video_dev" default="/dev/usb_cam"/>
+  <arg name="use_camera" default="true"/>
+  <arg name="use_rviz" default="false"/>
+  <arg name="image_topic" default="/usb_cam/image_raw"/>
+  <arg name="vision_config" default="$(find sagittarius_object_color_detector)/config/vision_config.yaml"/>
+  <arg name="service_name" default="openclaw/run_command"/>
+
+  <include file="$(find sagittarius_moveit)/launch/demo_true.launch">
+    <arg name="robot_name" value="$(arg robot_name)"/>
+    <arg name="robot_model" value="$(arg robot_model)"/>
+    <arg name="use_rviz" value="$(arg use_rviz)"/>
+    <arg name="use_default_rviz" value="false"/>
+  </include>
+
+  <node pkg="sagittarius_object_color_detector"
+        type="sgr_ctrl.py"
+        name="sgr_ctrl_node"
+        ns="$(arg robot_name)"
+        output="screen"/>
+
+  <include if="$(arg use_camera)" file="$(find sagittarius_object_color_detector)/launch/usb_cam.launch">
+    <arg name="video_dev" value="$(arg video_dev)"/>
+  </include>
+
+  <node pkg="sagittarius_openclaw_bridge"
+        type="command_bridge.py"
+        name="command_bridge"
+        output="screen">
+    <param name="robot_name" value="$(arg robot_name)"/>
+    <param name="service_name" value="$(arg service_name)"/>
+    <param name="image_topic" value="$(arg image_topic)"/>
+    <param name="vision_config" value="$(arg vision_config)"/>
+  </node>
+</launch>
